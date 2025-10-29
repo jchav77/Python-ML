@@ -99,7 +99,7 @@ Your Excel file needs these column types:
 **3. Feature Columns (for segmentation):**
 - `collateral_status` - categorical (e.g., 'collateral', 'non-collateral')
 - `nsol_flag` - boolean (True/False or 1/0)
-- `balance_bin` - categorical (e.g., '0-1000', '1000-5000', '5000+')
+- `balance_bin` - categorical (e.g., '0-10', '10-50', '50+')
 - `last_rpc_months` - categorical (e.g., 'never', '0-1', '1-6', '6+')
 - `last_payment_months` - categorical
 - `time_since_chargeoff_months` - categorical
@@ -151,9 +151,9 @@ After running the analysis, check these files first:
 
 **Example output:**
 ```
-Cluster 0: 2,400 customers (30%) - High balance, collateral, recently contacted
-Cluster 1: 1,800 customers (22%) - Low balance, non-collateral, never contacted
-Cluster 2: 3,200 customers (40%) - Medium balance, mixed status
+Cluster 0: 240 customers (30%) - High balance, collateral, recently contacted
+Cluster 1: 180 customers (22%) - Low balance, non-collateral, never contacted
+Cluster 2: 320 customers (40%) - Medium balance, mixed status
 ...
 ```
 
