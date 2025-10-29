@@ -1,0 +1,567 @@
+"""
+PYTHON CHEAT SHEET FOR SAS/SQL/EXCEL USERS
+===========================================
+
+This guide translates familiar concepts from SAS, SQL, and Excel into Python.
+
+================================================================================
+BASIC CONCEPTS
+================================================================================
+
+PYTHON LIBRARIES = SAS PROCEDURES
+----------------------------------
+Just like SAS has PROC MEANS, PROC FREQ, etc., Python has libraries:
+
+- pandas = Data manipulation (like SAS DATA steps + PROC SQL)
+- numpy = Math operations (like Excel formulas)
+- scikit-learn = Machine learning (like SAS Enterprise Miner)
+- matplotlib/seaborn = Visualization (like SAS PROC SGPLOT)
+
+To use a library:
+```python
+import pandas as pd  # Import and give it a nickname
+```
+
+DATAFRAME = SAS DATASET = SQL TABLE
+------------------------------------
+A DataFrame is Python's version of a table:
+
+SAS:          DATA mydata;
+SQL:          CREATE TABLE mydata
+Excel:        A spreadsheet
+Python:       df = pd.DataFrame()
+
+INDEXING STARTS AT 0
+--------------------
+⚠️ IMPORTANT DIFFERENCE:
+
+SAS/SQL/Excel: First row/column is 1
+Python:        First row/column is 0
+
+Examples:
+df[0]      # First column
+df.iloc[0] # First row
+
+================================================================================
+DATA OPERATIONS COMPARISON
+================================================================================
+
+LOADING DATA
+------------
+
+SAS:
+    PROC IMPORT DATAFILE="file.xlsx" OUT=mydata;
+    RUN;
+
+SQL:
+    SELECT * FROM table;
+
+Python:
+    df = pd.read_excel('file.xlsx')
+    df = pd.read_csv('file.csv')
+
+VIEWING DATA
+------------
+
+SAS:
+    PROC PRINT DATA=mydata (OBS=5);
+    RUN;
+
+SQL:
+    SELECT TOP 5 * FROM table;
+
+Excel:
+    Just look at first few rows
+
+Python:
+    df.head()      # First 5 rows
+    df.head(10)    # First 10 rows
+    df.tail()      # Last 5 rows
+    df.sample(5)   # Random 5 rows
+
+COLUMN SELECTION
+----------------
+
+SQL:
+    SELECT col1, col2 FROM table;
+
+SAS:
+    DATA new; SET old;
+        KEEP col1 col2;
+    RUN;
+
+Excel:
+    Select columns A and C
+
+Python:
+    df[['col1', 'col2']]           # Multiple columns
+    df['col1']                      # Single column
+    df.loc[:, ['col1', 'col2']]    # Using loc
+
+FILTERING ROWS
+--------------
+
+SQL:
+    SELECT * FROM table WHERE age > 30;
+
+SAS:
+    DATA new; SET old;
+        WHERE age > 30;
+    RUN;
+
+Excel:
+    Use AutoFilter
+
+Python:
+    df[df['age'] > 30]
+    df[df['status'] == 'active']
+    df[(df['age'] > 30) & (df['balance'] > 1000)]  # Multiple conditions
+
+CREATING NEW COLUMNS
+--------------------
+
+SAS:
+    DATA new; SET old;
+        new_col = col1 * 2;
+    RUN;
+
+SQL:
+    SELECT *, col1 * 2 AS new_col FROM table;
+
+Excel:
+    =A1*2
+
+Python:
+    df['new_col'] = df['col1'] * 2
+    df['flag'] = df['amount'] > 100  # Creates boolean
+
+GROUPING AND AGGREGATING
+-------------------------
+
+SQL:
+    SELECT category, AVG(amount), COUNT(*)
+    FROM table
+    GROUP BY category;
+
+SAS:
+    PROC MEANS DATA=mydata;
+        CLASS category;
+        VAR amount;
+    RUN;
+
+Excel:
+    Pivot Table
+
+Python:
+    df.groupby('category')['amount'].agg(['mean', 'count'])
+    df.groupby('category').agg({
+        'amount': ['mean', 'sum', 'count'],
+        'age': 'median'
+    })
+
+SORTING
+-------
+
+SQL:
+    SELECT * FROM table ORDER BY amount DESC;
+
+SAS:
+    PROC SORT DATA=mydata;
+        BY DESCENDING amount;
+    RUN;
+
+Excel:
+    Sort Z→A
+
+Python:
+    df.sort_values('amount', ascending=False)
+    df.sort_values(['category', 'amount'])  # Multiple columns
+
+MERGING/JOINING
+---------------
+
+SQL:
+    SELECT * FROM table1
+    LEFT JOIN table2 ON table1.id = table2.id;
+
+SAS:
+    DATA merged; MERGE table1 table2;
+        BY id;
+    RUN;
+
+Excel:
+    VLOOKUP
+
+Python:
+    pd.merge(df1, df2, on='id', how='left')
+    
+    # how options: 'left', 'right', 'inner', 'outer'
+
+COUNTING UNIQUE VALUES
+----------------------
+
+SQL:
+    SELECT category, COUNT(*) FROM table GROUP BY category;
+
+SAS:
+    PROC FREQ DATA=mydata;
+        TABLES category;
+    RUN;
+
+Excel:
+    COUNTIF or Pivot Table
+
+Python:
+    df['category'].value_counts()
+    df.groupby('category').size()
+
+SUMMARY STATISTICS
+------------------
+
+SAS:
+    PROC MEANS DATA=mydata;
+        VAR amount;
+    RUN;
+
+SQL:
+    SELECT AVG(amount), STD(amount), MIN(amount), MAX(amount)
+    FROM table;
+
+Excel:
+    =AVERAGE(), =STDEV(), etc.
+
+Python:
+    df['amount'].describe()  # All statistics at once
+    df['amount'].mean()
+    df['amount'].std()
+    df['amount'].median()
+    df['amount'].min()
+    df['amount'].max()
+
+CHECKING FOR MISSING VALUES
+----------------------------
+
+SAS:
+    PROC FREQ DATA=mydata;
+        TABLES _ALL_ / MISSING;
+    RUN;
+
+SQL:
+    SELECT COUNT(*) FROM table WHERE col IS NULL;
+
+Excel:
+    Filter for blanks
+
+Python:
+    df.isnull().sum()     # Count missing per column
+    df.isnull().any()     # Which columns have any missing
+    df.isna().sum()       # Same as isnull()
+
+HANDLING MISSING VALUES
+-----------------------
+
+SAS:
+    DATA new; SET old;
+        IF col = . THEN col = 0;
+    RUN;
+
+SQL:
+    SELECT COALESCE(col, 0) AS col FROM table;
+
+Python:
+    df['col'].fillna(0)              # Fill with 0
+    df['col'].fillna(df['col'].mean())  # Fill with mean
+    df.dropna()                       # Remove rows with any missing
+    df.dropna(subset=['col1', 'col2']) # Remove if specific cols missing
+
+================================================================================
+PYTHON-SPECIFIC SYNTAX
+================================================================================
+
+VARIABLE ASSIGNMENT
+-------------------
+
+SAS:      %LET var = 5;
+Excel:    Just type in a cell
+Python:   var = 5
+
+Types:
+x = 5           # Integer
+x = 5.2         # Float (decimal)
+x = "hello"     # String (text)
+x = True        # Boolean
+x = [1, 2, 3]   # List
+x = None        # Missing/null
+
+COMMENTS
+--------
+
+SAS:      * This is a comment;
+SQL:      -- This is a comment
+Python:   # This is a comment
+
+Multi-line comments:
+"""
+This is a
+multi-line comment
+"""
+
+STRINGS
+-------
+
+Creating strings:
+name = "John"
+name = 'John'     # Single or double quotes work
+
+String operations:
+full_name = first + " " + last    # Concatenation
+upper_name = name.upper()         # Convert to uppercase
+lower_name = name.lower()         # Convert to lowercase
+length = len(name)                # Length of string
+
+LISTS (ARRAYS)
+--------------
+
+Creating lists:
+numbers = [1, 2, 3, 4, 5]
+names = ['Alice', 'Bob', 'Charlie']
+mixed = [1, 'hello', True, 3.14]
+
+Accessing elements:
+first = numbers[0]     # First element (remember: 0-indexed!)
+last = numbers[-1]     # Last element
+subset = numbers[1:3]  # Elements 1 and 2 (not 3!)
+
+Adding to lists:
+numbers.append(6)      # Add to end
+numbers.extend([7, 8]) # Add multiple
+
+DICTIONARIES (KEY-VALUE PAIRS)
+------------------------------
+
+Like a lookup table:
+
+person = {
+    'name': 'John',
+    'age': 30,
+    'city': 'New York'
+}
+
+Accessing values:
+name = person['name']
+age = person.get('age')
+
+Adding/updating:
+person['email'] = 'john@email.com'
+
+IF STATEMENTS
+-------------
+
+SAS:
+    IF age > 30 THEN category = 'Senior';
+    ELSE category = 'Junior';
+
+Python:
+if age > 30:
+    category = 'Senior'
+else:
+    category = 'Junior'
+
+⚠️ INDENTATION MATTERS! Code inside if/else must be indented.
+
+Multiple conditions:
+if balance > 5000:
+    tier = 'High'
+elif balance > 1000:
+    tier = 'Medium'
+else:
+    tier = 'Low'
+
+LOOPS
+-----
+
+SAS:
+    DO i = 1 TO 10;
+        /* code */
+    END;
+
+Python:
+for i in range(10):    # 0 to 9
+    print(i)
+
+for i in range(1, 11):  # 1 to 10
+    print(i)
+
+Loop through list:
+for name in names:
+    print(name)
+
+Loop through DataFrame rows (avoid if possible - slow!):
+for index, row in df.iterrows():
+    print(row['column_name'])
+
+FUNCTIONS
+---------
+
+SAS:
+    %MACRO myfunc(param);
+        /* code */
+    %MEND;
+
+Python:
+def my_function(param):
+    """
+    This is documentation for the function
+    """
+    # Code here
+    result = param * 2
+    return result
+
+# Using the function:
+output = my_function(5)  # output = 10
+
+================================================================================
+COMMON OPERATIONS IN THIS PROJECT
+================================================================================
+
+ONE-HOT ENCODING
+----------------
+
+What it does: Converts categories to binary columns
+
+Example:
+Before:         After:
+status          status_A  status_B  status_C
+------          --------  --------  --------
+A                  1         0         0
+B                  0         1         0
+C                  0         0         1
+
+Code:
+df_encoded = pd.get_dummies(df['status'], prefix='status')
+
+STANDARDIZATION
+---------------
+
+What it does: Converts all features to same scale (mean=0, std=1)
+
+Why: K-means treats all features equally, so they need same scale
+
+Code:
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+K-MEANS CLUSTERING
+------------------
+
+What it does: Groups similar observations
+
+Code:
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=5, random_state=42)
+labels = kmeans.fit_predict(X)
+
+STATISTICAL TESTS
+-----------------
+
+Two-sample t-test (comparing means):
+from scipy.stats import ttest_ind
+t_stat, p_value = ttest_ind(group1, group2)
+
+Two-proportion z-test (comparing percentages):
+# See 04_significance_testing.py for implementation
+
+================================================================================
+PANDAS SHORTCUTS YOU'LL USE OFTEN
+================================================================================
+
+df.shape              # (rows, columns) tuple
+df.columns            # List of column names
+df.dtypes             # Data type of each column
+df.info()             # Overview of DataFrame
+df.describe()         # Summary statistics
+df.nunique()          # Count unique values per column
+df.drop(columns=[...]) # Remove columns
+df.rename(columns={...}) # Rename columns
+df.reset_index()      # Reset row numbers
+df.copy()             # Make a copy of DataFrame
+
+Boolean operations:
+&  # AND (must wrap conditions in parentheses)
+|  # OR
+~  # NOT
+
+Example:
+df[(df['age'] > 30) & (df['balance'] > 1000)]
+
+================================================================================
+DEBUGGING TIPS
+================================================================================
+
+PRINT STATEMENTS
+----------------
+
+Your best friend for debugging:
+
+print(variable)              # See value
+print(type(variable))        # See type
+print(df.shape)              # See DataFrame size
+print(df.columns.tolist())   # See all column names
+
+ERROR MESSAGES
+--------------
+
+Python error messages are helpful! Read them bottom-up:
+
+Example error:
+    KeyError: 'column_name'
+    
+Meaning: You tried to access a column that doesn't exist
+Solution: Check column names with df.columns
+
+Common errors:
+- KeyError: Column doesn't exist
+- NameError: Variable doesn't exist
+- IndexError: Trying to access element that doesn't exist
+- TypeError: Wrong data type
+- ValueError: Right type, wrong value
+
+COMMON ISSUES
+-------------
+
+Issue: df['column'] vs df.column
+Solution: Use df['column'] always (safer)
+
+Issue: SettingWithCopyWarning
+Solution: Use .copy() when creating new DataFrames
+   df_new = df[df['col'] > 0].copy()
+
+Issue: Chained indexing warning
+Solution: Use .loc instead
+   df.loc[df['age'] > 30, 'category'] = 'Senior'
+
+================================================================================
+RESOURCES FOR LEARNING MORE
+================================================================================
+
+Official Documentation:
+- Pandas: https://pandas.pydata.org/docs/
+- NumPy: https://numpy.org/doc/
+- Scikit-learn: https://scikit-learn.org/stable/
+
+Quick References:
+- Pandas Cheat Sheet (Google "pandas cheat sheet")
+- Stack Overflow (for specific questions)
+
+Practice:
+- Try operations in Python console before adding to scripts
+- Start with small examples before running on full data
+
+Remember: 
+- Everyone was new to Python once
+- Error messages are learning opportunities
+- Google is your friend (most Python questions have been asked before!)
+
+================================================================================
+"""

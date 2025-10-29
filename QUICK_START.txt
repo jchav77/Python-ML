@@ -1,0 +1,289 @@
+"""
+QUICK START GUIDE
+=================
+
+This guide will get you from zero to running your first analysis.
+
+================================================================================
+SETUP (ONE-TIME ONLY)
+================================================================================
+
+1. INSTALL PYTHON
+   ✓ You already have Python 3.12.2 installed
+
+2. INSTALL VISUAL STUDIO CODE (VS Code)
+   ✓ You already have VS Code installed (the blue icon)
+
+3. INSTALL GIT BASH
+   ✓ You already have Git Bash installed
+
+4. CLONE/CREATE PROJECT FOLDER
+   
+   Option A: Using Git (if this is in a repository)
+   ------------------------------------------------
+   Open Git Bash and run:
+   
+   cd ~/Documents  # or wherever you want the project
+   git clone [repository-url]
+   cd campaign_analysis
+   
+   Option B: Manual setup
+   ----------------------
+   1. Create a folder called "campaign_analysis" on your computer
+   2. Copy all the Python files into it
+   3. Create subfolders: data/, output/, output/figures/
+
+5. INSTALL PYTHON PACKAGES
+   
+   Open Git Bash in your project folder and run:
+   
+   pip install -r requirements.txt
+   
+   This installs all necessary packages in one command.
+   
+   TROUBLESHOOTING:
+   - If you get "pip not found": Try "python -m pip install -r requirements.txt"
+   - If you get permission errors: Add "--user" flag: 
+     pip install -r requirements.txt --user
+
+6. PREPARE YOUR DATA
+   
+   a. Save your Excel file as: data/campaign_data.xlsx
+   
+   b. Make sure it has these columns (adjust names in code if different):
+      - customer_id (or similar identifier)
+      - test_control (values: 'test', 'control', or variations)
+      - Feature columns: collateral_status, nsol_flag, balance_bin, etc.
+      - Target columns: recovery_percent, rpc_flag, payment_flag
+   
+   c. IMPORTANT: Check your column names!
+      Open 01_data_loading.py and 02_preprocessing.py
+      Update the column lists to match YOUR actual column names
+
+================================================================================
+RUNNING THE ANALYSIS
+================================================================================
+
+METHOD 1: Run Everything at Once (Recommended for first time)
+--------------------------------------------------------------
+
+1. Open Git Bash in your project folder
+2. Run:
+   
+   python main_analysis.py
+   
+3. Wait (this may take 5-15 minutes depending on data size)
+4. Review output files in the output/ folder
+
+METHOD 2: Step-by-Step (Better for learning/debugging)
+-------------------------------------------------------
+
+Run each script one at a time:
+
+# Step 1: Load and validate data
+python 01_data_loading.py
+
+# Review: Check the terminal output - do the column names look right?
+#         Check output/01_loaded_data.csv - does it look correct?
+
+# Step 2: Preprocess data
+python 02_preprocessing.py
+
+# Review: Check output/02_encoding_map.json - does the encoding make sense?
+#         Check output/02_preprocessed_data.csv - lots more columns now?
+
+# Step 3: Run clustering (do this for EACH target variable)
+
+# For recovery_percent:
+python 03_clustering.py  # Make sure TARGET_VARIABLE = 'recovery_percent' in the file
+
+# For rpc_flag:
+# Edit 03_clustering.py, change TARGET_VARIABLE to 'rpc_flag', then run:
+python 03_clustering.py
+
+# For payment_flag:  
+# Edit 03_clustering.py, change TARGET_VARIABLE to 'payment_flag', then run:
+python 03_clustering.py
+
+# Review: Check the plots in output/figures/
+#         Look at the elbow and silhouette plots
+#         Does the chosen K make sense?
+
+# Step 4: Test significance (do this for EACH target variable)
+
+# For recovery_percent:
+python 04_significance_testing.py  # Make sure config matches target variable
+
+# Repeat for other target variables
+# Edit the configuration at the top of 04_significance_testing.py
+
+# Review: Check output/04_significant_clusters_*.csv
+#         These are your key insights!
+
+================================================================================
+USING VS CODE (RECOMMENDED)
+================================================================================
+
+VS Code is more user-friendly than Git Bash for editing and running Python.
+
+1. Open VS Code
+2. File → Open Folder → Select your campaign_analysis folder
+3. Open any .py file
+4. To run a file:
+   - Click the ▷ (play button) in the top-right, OR
+   - Right-click in the file → "Run Python File in Terminal"
+
+5. View results:
+   - Output appears in the Terminal panel at the bottom
+   - Files appear in the Explorer panel on the left
+
+TIPS:
+- VS Code has autocomplete - start typing and it suggests completions
+- Hover over functions to see documentation
+- Click on variables to see where they're used
+- Use Ctrl+F to find text in files
+
+================================================================================
+INTERPRETING YOUR RESULTS
+================================================================================
+
+After running the analysis, you'll have several output files:
+
+KEY FILES TO REVIEW:
+
+1. output/00_analysis_summary.csv
+   - High-level overview of all results
+   - Start here!
+
+2. output/04_significant_clusters_[target].csv
+   - These are the segments where test significantly differed from control
+   - These are your insights!
+
+3. output/figures/
+   - Visual representations of results
+   - Great for presentations
+
+HOW TO READ RESULTS:
+
+Open the significant_clusters CSV file. Each row is one cluster.
+
+Key columns:
+- cluster: Cluster ID number
+- difference (or difference_pct): Size of effect
+- p_value: Statistical confidence (lower = more confident)
+- is_significant: TRUE = worth paying attention to
+- n_test, n_control: Sample sizes
+
+EXAMPLE ROW:
+cluster | difference_pct | p_value | is_significant | n_test | n_control
+   2    |      +5.2     |  0.018  |     TRUE       |  850   |   420
+
+INTERPRETATION:
+"Cluster 2 showed a 5.2 percentage point improvement in the test group 
+ compared to control. With p=0.018, we're 98% confident this is real."
+
+For detailed interpretation help, see: RESULTS_GUIDE.txt
+
+================================================================================
+COMMON ISSUES AND SOLUTIONS
+================================================================================
+
+PROBLEM: "No module named 'pandas'"
+SOLUTION: 
+   pip install -r requirements.txt
+
+PROBLEM: "File not found"
+SOLUTION: 
+   - Check that your Excel file is in the data/ folder
+   - Make sure you're running scripts from the project root folder
+   - In VS Code: Open the entire project folder, not individual files
+
+PROBLEM: Script runs but no significant results
+SOLUTION:
+   - This might be correct! Many campaigns don't have universal effects
+   - Check if your control group is large enough (need ~10% of total)
+   - Review the cluster_profiles to understand the segments better
+
+PROBLEM: Python is slow or hanging
+SOLUTION:
+   - Reduce max_k in clustering scripts (change from 15 to 10)
+   - Check if you have other programs running
+   - For very large datasets, consider sampling for initial exploration
+
+PROBLEM: Column names don't match
+SOLUTION:
+   - Edit 01_data_loading.py and 02_preprocessing.py
+   - Update the column name lists to match YOUR Excel file
+   - Run again
+
+PROBLEM: Results don't make business sense
+SOLUTION:
+   - Double-check your data definitions
+   - Verify test/control flag is correct
+   - Check for data quality issues
+   - Sometimes surprising results are real insights!
+
+================================================================================
+GETTING HELP
+================================================================================
+
+When asking for help, provide:
+1. Which script you were running
+2. The complete error message (copy from terminal)
+3. What you were trying to do
+4. What you expected to happen
+
+HELPFUL DEBUGGING STEPS:
+- Read error messages carefully - they usually tell you what's wrong
+- Check the most recent output files - did earlier steps work?
+- Try running earlier scripts first - maybe an earlier step failed
+- Use print() statements to see what's happening at each step
+
+================================================================================
+NEXT STEPS AFTER YOUR FIRST RUN
+================================================================================
+
+1. Review the RESULTS_GUIDE.txt for how to interpret findings
+
+2. Share significant findings with your team
+   - Use the visualization PNGs for presentations
+   - Share the significant_clusters CSV for details
+
+3. Plan your next campaign based on insights
+   - Which segments to target
+   - Which to exclude
+   - What messaging might work better
+
+4. Keep all output files for documentation
+   - You might need to reference them later
+   - Good for audit trail
+
+5. Consider running sensitivity analysis
+   - Try different values of K
+   - Try different significance levels (alpha)
+   - See if results are robust
+
+================================================================================
+TIPS FOR SUCCESS
+================================================================================
+
+✓ Start with one target variable to learn the process
+✓ Review outputs after each step before continuing
+✓ Save your work frequently
+✓ Document any decisions you make (like choosing K)
+✓ Don't worry if not all clusters are significant - that's normal
+✓ Ask questions when stuck - the code has lots of comments to help
+✓ Remember: The goal is insights, not perfect models
+
+================================================================================
+
+Ready to start? 
+
+1. Make sure your data is in data/campaign_data.xlsx
+2. Run: python main_analysis.py
+3. Wait for it to complete
+4. Check output/00_analysis_summary.csv
+5. Review output/04_significant_clusters_*.csv files
+
+Good luck! 🚀
+"""
